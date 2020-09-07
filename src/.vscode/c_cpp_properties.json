@@ -1,0 +1,31 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/li/catkin_ws/devel/include/**",
+                "/home/li/ws_moveit/devel/include/**",
+                "/opt/ros/melodic/include/**",
+                "/home/li/catkin_ws/src/cloud_demo/include/**",
+                "/opt/ros/melodic/share/fetch_gazebo/include/**",
+                "/home/li/ws_moveit/src/franka_ros/franka_control/include/**",
+                "/home/li/ws_moveit/src/franka_ros/franka_example_controllers/include/**",
+                "/home/li/ws_moveit/src/franka_ros/franka_gripper/include/**",
+                "/home/li/ws_moveit/src/franka_ros/franka_hw/include/**",
+                "/home/li/catkin_ws/src/move_demo/include/**",
+                "/home/li/catkin_ws/src/perception_pcl/pcl_conversions/include/**",
+                "/home/li/catkin_ws/src/perception_pcl/pcl_ros/include/**",
+                "/usr/include/**"
+            ],
+            "name": "ROS",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14"
+        }
+    ],
+    "version": 4
+}
