@@ -13,8 +13,6 @@ int main(int argc, char **argv)
     std_msgs::Float64MultiArray msg;
     std::vector<double> object_position = {0.75, 0.38};
     msg.data = object_position;
- 
-    ROS_INFO("I have published array data"); 
     object_position_pub.publish(msg);
 
     ros::spinOnce();

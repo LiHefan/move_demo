@@ -1,6 +1,15 @@
 <launch>
 
-  <node name="move_demo" pkg="move_demo" type="move_demo" respawn="false" output="screen">
+  <node name="add_object_server" pkg="move_demo" type="add_object_server" respawn="false" output="screen">
+  </node>
+
+  <node name="move_above_server" pkg="move_demo" type="move_above_server" respawn="false" output="screen">
+  </node>
+
+  <node name="move_to_edge" pkg="move_demo" type="move_to_edge" respawn="false" output="screen">
+  </node>
+
+  <node name="move_along_contour" pkg="move_demo" type="move_along_contour" respawn="false" output="screen">
   </node>
 
 </launch>

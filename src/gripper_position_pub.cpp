@@ -6,7 +6,7 @@
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "pos_pub");
+  ros::init(argc, argv, "gripper_position_pub");
 
   ros::NodeHandle n;
   ros::AsyncSpinner spinner(4);
@@ -16,7 +16,7 @@ int main(int argc, char **argv)
   moveit::planning_interface::MoveGroupInterface move_group(PLANNING_GROUP);
   geometry_msgs::PoseStamped current_pose;
 
-  ros::Publisher pos_pub = n.advertise<std_msgs::Float64MultiArray>("pos_pub", 1000); 
+  ros::Publisher pos_pub = n.advertise<std_msgs::Float64MultiArray>("gripper_position", 1000); 
   ros::Rate loop_rate(10);
   while (ros::ok())
   {
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     current_pose = move_group.getCurrentPose();
     std::vector<double> test_array = {current_pose.pose.position.x, current_pose.pose.position.y, current_pose.pose.position.z};
     msg.data = test_array;
-
+    
     ROS_INFO("I have published array data [%f], [%f], [%f]",msg.data[0], msg.data[1], msg.data[2]); 
     pos_pub.publish(msg);
 

@@ -28,6 +28,7 @@ add_service_files(
   MoveAbove.srv
   MoveToEdge.srv
   MoveAlongContour.srv
+  DrawCircle.srv
 )
 
 generate_messages(
@@ -83,8 +84,8 @@ add_dependencies(move_along_contour_server move_demo_gencpp)
 add_executable(object_position_pub src/object_position_pub.cpp)
 target_link_libraries(object_position_pub ${catkin_LIBRARIES})
 
-add_executable(pos_pub src/pos_pub.cpp)
-target_link_libraries(pos_pub ${catkin_LIBRARIES})
+add_executable(gripper_position_pub src/gripper_position_pub.cpp)
+target_link_libraries(gripper_position_pub ${catkin_LIBRARIES})
 
 add_executable(tns_pub src/tns_pub.cpp)
 target_link_libraries(tns_pub ${catkin_LIBRARIES})
@@ -94,6 +95,9 @@ target_link_libraries(sub ${catkin_LIBRARIES})
 
 add_executable(draw_circle src/draw_circle.cpp)
 target_link_libraries(draw_circle ${catkin_LIBRARIES})
+
+add_executable(draw_circle_server src/draw_circle_server.cpp)
+target_link_libraries(draw_circle_server ${catkin_LIBRARIES})
 
 
 install(TARGETS move_demo DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

@@ -1,0 +1,21 @@
+<launch>
+
+  <node name="object_position_pub" pkg="move_demo" type="object_position_pub" respawn="false" output="screen">
+  </node>
+
+  <node name="add_object_server" pkg="move_demo" type="add_object_server" respawn="false" output="screen">
+  </node>
+
+  <node name="move_above_server" pkg="move_demo" type="move_above_server" respawn="false" output="screen">
+  </node>
+
+  <node name="draw_circle_server" pkg="move_demo" type="draw_circle_server" respawn="false" output="screen">
+  </node>
+
+  <node name="move_to_edge_server" pkg="move_demo" type="move_to_edge_server" respawn="false" output="screen">
+  </node>
+
+  <node name="move_along_contour_server" pkg="move_demo" type="move_along_contour_server" respawn="false" output="screen">
+  </node>
+
+</launch>

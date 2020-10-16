@@ -4,55 +4,24 @@
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include "std_msgs/Float64MultiArray.h"
-#include "std_msgs/Float64.h"
+#include <move_demo/DrawCircle.h>
 
 #include <pcl/point_cloud.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <sensor_msgs/PointCloud2.h>
 
-
 const double PI = 3.1416;
 const double OBJECT_X = 0.35;
 const double OBJECT_Y = 0;
-const double GRIPPER_HEIGHT = 0.18;
+const double GRIPPER_HEIGHT = 0.125;
 const double BALL_RADIUS = 0.1;
 
 const double VERTICAL_STEP = 0.01;
 const double RADIAL_STEP = 0.02;
-double distance;
 
-pcl::PointCloud<pcl::PointXYZ> cloud;
-int pcl_counter = 0;
-
-void tnsCallback(const std_msgs::Float64::ConstPtr& msg)
+bool DrawCircle(move_demo::DrawCircle::Request &req, move_demo::DrawCircle::Response &res)
 {
-  distance = msg->data;
-
-}
-
-void moveCallback(const std_msgs::Float64MultiArray::ConstPtr& msg)
-{
-  double cloud_x,cloud_y,cloud_z;
-  double rad;
-  rad = atan2(OBJECT_Y-msg->data[1],OBJECT_X-msg->data[0]);
-  cloud_x = msg->data[0] + distance*cos(rad);
-  cloud_y = msg->data[1] + distance*sin(rad);
-  cloud_z = msg->data[2] - GRIPPER_HEIGHT;
-  cloud.points[pcl_counter].x = cloud_x;
-  cloud.points[pcl_counter].y = cloud_y;
-  cloud.points[pcl_counter].z = cloud_z;
-  pcl_counter++;
-  ROS_INFO("COUNTER: %d", pcl_counter);
-
-}
-
-int main(int argc, char **argv)
-{
-  ros::init(argc, argv, "move_demo", ros::init_options::AnonymousName);
   ros::NodeHandle node_handle;
-  ros::AsyncSpinner spinner(4);
-  spinner.start();
-
   static const std::string PLANNING_GROUP = "panda_arm";
   moveit::planning_interface::MoveGroupInterface move_group(PLANNING_GROUP);
 
@@ -68,12 +37,13 @@ int main(int argc, char **argv)
   
   /*************Declare PointCloud*******************/
   ros::Publisher pcl_pub = node_handle.advertise<sensor_msgs::PointCloud2>("pcl_output",100);
+  pcl::PointCloud<pcl::PointXYZ> cloud;
   sensor_msgs::PointCloud2 output;
   // Fill in the cloud data
-  cloud.width  = 120000;
+  cloud.width  = 12000;
   cloud.height = 1;
   cloud.points.resize(cloud.width * cloud.height);
-
+  int pcl_counter = 0;
 
 
   geometry_msgs::Pose target_pose;
@@ -104,14 +74,10 @@ int main(int argc, char **argv)
 
   move_group.setPoseTarget(target_pose);
   move_group.move();
-
-  ros::Subscriber tns_sub = node_handle.subscribe("tns", 1000, tnsCallback);
-  ros::spinOnce();
-  ros::Subscriber gripper_pos_sub = node_handle.subscribe("gripper_position", 1000, moveCallback);
-  ros::spinOnce();
-
+  
   int round_counter = 1;
-  while(target_pose.position.z>1.2)
+
+  while(target_pose.position.z>1.13)
   {
     
     radius = 0.1;
@@ -164,13 +130,13 @@ int main(int argc, char **argv)
     my_plan.trajectory_ = trajectory;
     move_group.execute(my_plan);
     round_counter = round_counter*(-1);
-    // for(int i=0;i<waypoints.size();i++)
-    // {
-    //   cloud.points[pcl_counter].x = waypoints[i].position.x;
-    //   cloud.points[pcl_counter].y = waypoints[i].position.y;
-    //   cloud.points[pcl_counter].z = waypoints[i].position.z;
-    //   pcl_counter++;
-    // }
+    for(int i=0;i<waypoints.size();i++)
+    {
+      cloud.points[pcl_counter].x = waypoints[i].position.x;
+      cloud.points[pcl_counter].y = waypoints[i].position.y;
+      cloud.points[pcl_counter].z = waypoints[i].position.z;
+      pcl_counter++;
+    }
     ROS_INFO("Next height: %f",target_pose.position.z - VERTICAL_STEP);
     ROS_INFO("Fraction = %f",fraction);
 
@@ -189,9 +155,24 @@ int main(int argc, char **argv)
       loop_rate.sleep();
   }
   /*************************************************************************************************/
-  ros::waitForShutdown();
+  ROS_INFO_STREAM("Step 4 finished");
+  res.msg = "success";
+
+  return true;
 }
 
+int main(int argc, char **argv)
+{
+  ros::init(argc, argv, "move_above_server");
+  ros::NodeHandle n;
+  ros::AsyncSpinner async_spinner(4);
+  async_spinner.start();
+  ros::ServiceServer service = n.advertiseService("draw_circle", DrawCircle);
+  ROS_INFO("Step 4 ready. Waiting for request...");
 
 
+  ros::waitForShutdown();
+  //ros::spin();
 
+  return 0;
+}

@@ -5,7 +5,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "tns_pub");
   ros::NodeHandle n;
-  ros::Publisher tns_pub = n.advertise<std_msgs::Float64>("tns_pub", 1000); 
+  ros::Publisher tns_pub = n.advertise<std_msgs::Float64>("tns", 1000); 
   ros::Rate loop_rate(10);
   while (ros::ok())
   {

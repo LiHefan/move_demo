@@ -17,12 +17,12 @@
 
 const double PI = 3.1416;
 
-const double BOTTLE_HEIGHT = 0.2;
-const double BOTTLE_RADIUS = 0.05;
+const double CONE_HEIGHT = 0.2;
+const double CONE_RADIUS = 0.1;
 const double BALL_RADIUS = 0.1;
 
-const double OBJECT_X = 0.75;
-const double OBJECT_Y = 0.38;
+const double OBJECT_X = 0.4;
+const double OBJECT_Y = 0.4;
 
 const double VERTICAL_STEP = 0.005;
 const double RADIAL_STEP = 0.01;
@@ -31,8 +31,8 @@ const double GRIPPER_HEIGHT = 0.125;
 const double GRIPPER_JOINT_RADIUS = 0.055; //0.04-0.05
 
 void DownwardMove(double& position_z);
-void InwardMove(double& position_x, double& position_y);
-void OutwardMove(double& posiiton_x, double& position_y);
+void InwardMove(double& position_x, double& position_y, double object_rad);
+void OutwardMove(double& posiiton_x, double& position_y, double object_rad);
 void GenerateObjects(moveit_msgs::CollisionObject& ball);
 
 
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "move_demo", ros::init_options::AnonymousName);
   ros::NodeHandle node_handle;
-  ros::AsyncSpinner spinner(1);
+  ros::AsyncSpinner spinner(4);
   spinner.start();
 
   static const std::string PLANNING_GROUP = "panda_arm";
@@ -60,15 +60,15 @@ int main(int argc, char **argv)
   geometry_msgs::PoseStamped current_pose = move_group.getCurrentPose();
   ROS_INFO_STREAM("CURRENT POSE: "<<current_pose.pose.orientation.x<<" "<<current_pose.pose.orientation.y<<" "<<current_pose.pose.orientation.z<<" "<<current_pose.pose.orientation.w<<" ");
   
-  //Declare PointCloud
-  ros::Publisher pcl_pub = node_handle.advertise<sensor_msgs::PointCloud2>("pcl_output",100);
-  pcl::PointCloud<pcl::PointXYZ> cloud;
-  sensor_msgs::PointCloud2 output;
-  // Fill in the cloud data
-  cloud.width  = 100;
-  cloud.height = 1;
-  cloud.points.resize(cloud.width * cloud.height);
-  int pcl_counter = 0;
+  // /*************Declare PointCloud*******************/
+  // ros::Publisher pcl_pub = node_handle.advertise<sensor_msgs::PointCloud2>("pcl_output",100);
+  // pcl::PointCloud<pcl::PointXYZ> cloud;
+  // sensor_msgs::PointCloud2 output;
+  // // Fill in the cloud data
+  // cloud.width  = 100;
+  // cloud.height = 1;
+  // cloud.points.resize(cloud.width * cloud.height);
+  // int pcl_counter = 0;
 
 
   /*************** Generate Objects ******************/
@@ -83,33 +83,36 @@ int main(int argc, char **argv)
 
   /************************ Step 1: Move above to the object *************************/
   tf::Quaternion q;
-  q.setRPY(PI/2,PI/4,3*PI/4);
+  //q.setRPY(PI/2,PI/4,3*PI/4);
+  double object_rad = atan2(OBJECT_Y,OBJECT_X);
+  q.setRPY(PI,0,-PI/4+object_rad);
     
   geometry_msgs::Pose target_pose1;
   target_pose1.orientation.x = q.x();
   target_pose1.orientation.y = q.y();
   target_pose1.orientation.z = q.z();
   target_pose1.orientation.w = q.w();
-  target_pose1.position.x = OBJECT_X - GRIPPER_HEIGHT*0.7;
-  target_pose1.position.y = OBJECT_Y - GRIPPER_HEIGHT*0.7;
-  target_pose1.position.z = 1.45;
+  target_pose1.position.x = OBJECT_X;
+  target_pose1.position.y = OBJECT_Y;
+  target_pose1.position.z = 1.4;
 
-  ROS_INFO_STREAM(target_pose1.orientation.x<<" "<<target_pose1.orientation.y<<" "<<target_pose1.orientation.z<<" "<<target_pose1.orientation.w);
+
+
 
   move_group.setPoseTarget(target_pose1);
   success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
     
-  while(success)
-  {
+  // while(success)
+  // {
       
-    ROS_INFO_STREAM(target_pose1.position.z);
-    DownwardMove(target_pose1.position.z);
-    move_group.setPoseTarget(target_pose1);
-    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  }
+  //   ROS_INFO_STREAM(target_pose1.position.z);
+  //   DownwardMove(target_pose1.position.z);
+  //   move_group.setPoseTarget(target_pose1);
+  //   success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  // }
     
-  target_pose1.position.z += VERTICAL_STEP;
-  move_group.setPoseTarget(target_pose1);
+  // target_pose1.position.z += VERTICAL_STEP;
+  // move_group.setPoseTarget(target_pose1);
   move_group.move();
     
 
@@ -130,7 +133,7 @@ int main(int argc, char **argv)
 
   while(!success)
   {
-    OutwardMove(target_pose2.position.x, target_pose2.position.y);
+    OutwardMove(target_pose2.position.x, target_pose2.position.y,object_rad);
     move_group.setPoseTarget(target_pose2);
     ROS_INFO_STREAM(target_pose2.position.x);
     success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
@@ -141,11 +144,11 @@ int main(int argc, char **argv)
   /*********************** Step 3: Move along the contour of the object *****************/
   while(success)
   {
-    cloud.points[pcl_counter].x = target_pose2.position.x;
-    cloud.points[pcl_counter].y = target_pose2.position.y;
-    cloud.points[pcl_counter].z = target_pose2.position.z;
+    // cloud.points[pcl_counter].x = target_pose2.position.x;
+    // cloud.points[pcl_counter].y = target_pose2.position.y;
+    // cloud.points[pcl_counter].z = target_pose2.position.z;
 
-    pcl_counter++;
+    // pcl_counter++;
 
     move_group.move();
     DownwardMove(target_pose2.position.z);
@@ -153,32 +156,40 @@ int main(int argc, char **argv)
       break;
     move_group.setPoseTarget(target_pose2);
     success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-    if(success)
-    {
-      InwardMove(target_pose2.position.x, target_pose2.position.y);
-      move_group.setPoseTarget(target_pose2);
-      success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-    }
+    // if(success)
+    // {
+    //   InwardMove(target_pose2.position.x, target_pose2.position.y,object_rad);
+    //   move_group.setPoseTarget(target_pose2);
+    //   success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+    // }
+    // while(!success)
+    // {
+    //   OutwardMove(target_pose2.position.x, target_pose2.position.y,object_rad);
+    //   move_group.setPoseTarget(target_pose2);
+    //   success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+    // }
     while(!success)
     {
-      OutwardMove(target_pose2.position.x, target_pose2.position.y);
+      OutwardMove(target_pose2.position.x, target_pose2.position.y,object_rad);
       move_group.setPoseTarget(target_pose2);
       success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
     }
+
+  
   }
 
   ROS_INFO_STREAM("Step 3 finished");
 
-  /*********************************** Visualize data as PointCloud *******************************/
-  pcl::toROSMsg(cloud, output);
-  output.header.frame_id = "odom";
-  ros::Rate loop_rate(1);
-  while (ros::ok())
-  {
-      pcl_pub.publish(output);
-      ros::spinOnce();
-      loop_rate.sleep();
-  }
+  // /*********************************** Visualize data as PointCloud *******************************/
+  // pcl::toROSMsg(cloud, output);
+  // output.header.frame_id = "odom";
+  // ros::Rate loop_rate(100);
+  // while (ros::ok())
+  // {
+  //     pcl_pub.publish(output);
+  //     ros::spinOnce();
+  //     loop_rate.sleep();
+  // }
 
 
   ros::waitForShutdown();
@@ -192,17 +203,17 @@ void DownwardMove(double& position_z)
   ROS_INFO_STREAM("next height: " << position_z);
 }
 
-void InwardMove(double& position_x, double& position_y)
+void InwardMove(double& position_x, double& position_y, double object_rad)
 {
-  position_x += RADIAL_STEP;
-  position_y += RADIAL_STEP;
+  position_x += RADIAL_STEP*cos(object_rad);
+  position_y += RADIAL_STEP*sin(object_rad);
   ROS_INFO_STREAM("Inward");
 }
 
-void OutwardMove(double& position_x, double& position_y)
+void OutwardMove(double& position_x, double& position_y, double object_rad)
 {
-  position_x -= RADIAL_STEP;
-  position_y -= RADIAL_STEP;
+  position_x -= RADIAL_STEP*cos(object_rad);
+  position_y -= RADIAL_STEP*sin(object_rad);
   ROS_INFO_STREAM("Outward");
 }
 
@@ -214,11 +225,10 @@ void GenerateObjects(moveit_msgs::CollisionObject& ball)
   // Objects shape and size
   shape_msgs::SolidPrimitive primitive;
   primitive.type = primitive.SPHERE;
-  primitive.dimensions.resize(3);
+  primitive.dimensions.resize(2);
   primitive.dimensions[0] = BALL_RADIUS;
   // Objects position
   geometry_msgs::Pose object_pose1;
-  object_pose1.orientation.x = 1.0;
   object_pose1.position.x = OBJECT_X;
   object_pose1.position.y = OBJECT_Y;
   object_pose1.position.z = 1.0 + BALL_RADIUS;
